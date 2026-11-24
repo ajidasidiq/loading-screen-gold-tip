@@ -35,11 +35,20 @@ def main() -> int:
     with open(path, "w", encoding="utf-8", newline="\n") as f:
         f.write(TIP + "\n")
 
-    # Read-back verification: the bytes on disk must be exactly the entry.
+    # Read-back verification: the bytes on disk must be exactly the entry,
+    # one line, one trailing newline, nothing else.
     with open(path, "rb") as f:
         raw = f.read()
     if raw != (TIP + "\n").encode("utf-8"):
         print("error: read-back mismatch", file=sys.stderr)
+        return 1
+    decoded = raw.decode("utf-8")
+    if decoded.count("\n") != 1 or decoded.rstrip("\n") != TIP:
+        print("error: read-back has extra lines or altered text", file=sys.stderr)
+        return 1
+    line = decoded.rstrip("\n")
+    if line != line.strip():
+        print("error: entry has leading or trailing whitespace", file=sys.stderr)
         return 1
 
     print(f"wrote {len(TIP)}-character entry to {path}")
